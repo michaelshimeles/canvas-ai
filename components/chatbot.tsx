@@ -36,8 +36,21 @@ export default function Ai02() {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]);
   const [input, setInput] = useState("");
   const [showMessages, setShowMessages] = useState(true);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const { messages, sendMessage, status, error } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Listen for canvas image captures
+  useEffect(() => {
+    const handleImageCapture = (event: CustomEvent<string>) => {
+      setAttachedImage(event.detail);
+    };
+    
+    window.addEventListener('canvas-image-captured', handleImageCapture as EventListener);
+    return () => {
+      window.removeEventListener('canvas-image-captured', handleImageCapture as EventListener);
+    };
+  }, []);
 
   // Auto-scroll to bottom when messages update
   useEffect(() => {
@@ -178,16 +191,40 @@ export default function Ai02() {
 
       <div className="flex flex-col gap-4 w-[calc(42rem-5rem)]">
         <div className="flex min-h-[120px] flex-col rounded-2xl cursor-text bg-card border border-border shadow-lg">
+          {attachedImage && (
+            <div className="relative p-2 border-b border-border">
+              <img 
+                src={attachedImage} 
+                alt="Canvas capture" 
+                className="h-20 rounded border border-border object-contain bg-muted"
+              />
+              <button
+                onClick={() => setAttachedImage(null)}
+                className="absolute top-3 right-3 w-5 h-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center hover:bg-red-600"
+              >
+                ×
+              </button>
+            </div>
+          )}
           <div className="flex-1 relative overflow-y-auto max-h-[258px]">
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onSubmit={e => {
-                e.preventDefault();
-                sendMessage({ text: input });
-                setInput('');
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage({ 
+                    text: input,
+                    files: attachedImage ? [{
+                      type: 'file',
+                      url: attachedImage,
+                      mediaType: 'image/png',
+                    }] : undefined,
+                  });
+                  setInput('');
+                  setAttachedImage(null);
+                }
               }}
-
               placeholder="Ask anything"
               className="w-full border-0 p-3 transition-[padding] duration-200 ease-in-out min-h-[48.4px] outline-none text-[16px] text-foreground resize-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent! whitespace-pre-wrap break-words"
             />
@@ -245,18 +282,29 @@ export default function Ai02() {
                 <IconPhotoScan className="h-5 w-5" />
               </Button>
 
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => sendMessage({ text: input })}
-                className={cn(
-                  "h-6 w-6 rounded-full transition-all duration-100 cursor-pointer bg-primary",
-                  input && "bg-primary hover:bg-primary/90!"
-                )}
-                disabled={!input}
-              >
-                <IconArrowUp className="h-4 w-4 text-primary-foreground" />
-              </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                sendMessage({ 
+                  text: input,
+                  files: attachedImage ? [{
+                    type: 'file',
+                    url: attachedImage,
+                    mediaType: 'image/png',
+                  }] : undefined,
+                });
+                setInput('');
+                setAttachedImage(null);
+              }}
+              className={cn(
+                "h-6 w-6 rounded-full transition-all duration-100 cursor-pointer bg-primary",
+                input && "bg-primary hover:bg-primary/90!"
+              )}
+              disabled={!input}
+            >
+              <IconArrowUp className="h-4 w-4 text-primary-foreground" />
+            </Button>
             </div>
           </div>
         </div>

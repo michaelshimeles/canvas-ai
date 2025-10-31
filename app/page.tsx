@@ -4,6 +4,8 @@ import Chatbot from '@/components/chatbot'
 import { Tldraw, BaseBoxShapeUtil, TLBaseShape, HTMLContainer, RecordProps, T, Editor, createShapeId, DefaultToolbar, TLComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { useSyncDemo } from '@tldraw/sync'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 
 // Type definition
 type IFrameShape = TLBaseShape<
@@ -111,6 +113,33 @@ export default function App() {
 
   const editorRef = useRef<Editor | null>(null)
   const [urlInput, setUrlInput] = useState('https://www.rasmic.xyz')
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+
+  const captureSelection = async () => {
+    const editor = editorRef.current
+    if (!editor) return
+
+    const selectedIds = [...editor.getSelectedShapeIds()]
+    if (selectedIds.length === 0) {
+      toast.error('Please select some shapes first!')
+      return
+    }
+
+    const result = await editor.toImage(selectedIds, {
+      format: 'png',
+      scale: 2,
+      background: true,
+    })
+
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string
+      setCapturedImage(dataUrl)
+      // Dispatch event so chatbot knows an image is ready
+      window.dispatchEvent(new CustomEvent('canvas-image-captured', { detail: dataUrl }))
+    }
+    reader.readAsDataURL(result.blob)
+  }
 
   const handleAddIframe = () => {
     const editor = editorRef.current
@@ -204,6 +233,18 @@ export default function App() {
           Add iframe
         </button>
       </div>
+      <Button
+        onClick={captureSelection}
+        style={{
+          position: 'absolute',
+          bottom: 16,
+          left: '80%',
+          zIndex: 1000,
+        }}
+        variant="default"
+      >
+        📸 Capture Selection
+      </Button>
       <div
         style={{
           position: 'absolute',
