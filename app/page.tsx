@@ -1,5 +1,7 @@
 "use client"
-import { Tldraw, BaseBoxShapeUtil, TLBaseShape, HTMLContainer, RecordProps, T } from 'tldraw'
+import { useRef, useState } from 'react'
+import Chatbot from '@/components/chatbot'
+import { Tldraw, BaseBoxShapeUtil, TLBaseShape, HTMLContainer, RecordProps, T, Editor, createShapeId, DefaultToolbar, TLComponents } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { useSyncDemo } from '@tldraw/sync'
 
@@ -60,6 +62,11 @@ function IFrameComponent({ shape }: { shape: IFrameShape }) {
   )
 }
 
+const components: TLComponents = {
+  Toolbar: () => <DefaultToolbar orientation="vertical" />,
+  StylePanel: () => null,
+}
+
 // Functional component for the indicator
 function IFrameIndicator({ shape }: { shape: IFrameShape }) {
   return <rect width={shape.props.w} height={shape.props.h} />
@@ -86,6 +93,8 @@ class IFrameShapeUtil extends BaseBoxShapeUtil<IFrameShape> {
     return <IFrameComponent shape={shape} />
   }
 
+  
+
   indicator(shape: IFrameShape) {
     return <IFrameIndicator shape={shape} />
   }
@@ -100,12 +109,119 @@ export default function App() {
     shapeUtils: customShapeUtils,
   })
 
+  const editorRef = useRef<Editor | null>(null)
+  const [urlInput, setUrlInput] = useState('https://www.rasmic.xyz')
+
+  const handleAddIframe = () => {
+    const editor = editorRef.current
+    if (!editor) return
+
+    const trimmedUrl = urlInput.trim()
+    if (!trimmedUrl) return
+
+    const normalizedUrl = /^https?:\/\//i.test(trimmedUrl)
+      ? trimmedUrl
+      : `https://${trimmedUrl}`
+
+    const centerScreenPoint = editor.getViewportScreenCenter()
+    const centerPagePoint = editor.screenToPage(centerScreenPoint)
+
+    const width = 1024
+    const height = 768
+    const shapeId = createShapeId()
+
+    editor.createShape({
+      id: shapeId,
+      type: 'iframe',
+      x: centerPagePoint.x - width / 2,
+      y: centerPagePoint.y - height / 2,
+      props: {
+        w: width,
+        h: height,
+        url: normalizedUrl,
+      },
+    })
+
+    editor.select(shapeId)
+  }
+
   return (
     <div style={{ position: 'fixed', inset: 0 }}>
+      <div
+        style={{
+          position: 'absolute',
+          top: 16,
+          left: 16,
+          zIndex: 1000,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+          padding: '8px 12px',
+          borderRadius: 12,
+          backgroundColor: 'rgba(17, 24, 39, 0.85)',
+          color: '#f9fafb',
+          backdropFilter: 'blur(12px)',
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.35)',
+        }}
+      >
+        <label style={{ fontSize: 12, fontWeight: 600 }}>Iframe URL</label>
+        <input
+          value={urlInput}
+          onChange={(event) => setUrlInput(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault()
+              handleAddIframe()
+            }
+          }}
+          placeholder="https://rasmic.xyz"
+          style={{
+            flex: 1,
+            minWidth: 260,
+            padding: '6px 10px',
+            borderRadius: 6,
+            border: '1px solid rgba(148, 163, 184, 0.4)',
+            backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            color: '#f8fafc',
+            fontSize: 13,
+            outline: 'none',
+          }}
+        />
+        <button
+          type="button"
+          onClick={handleAddIframe}
+          style={{
+            padding: '6px 14px',
+            borderRadius: 6,
+            border: 'none',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+            color: '#f8fafc',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+          }}
+        >
+          Add iframe
+        </button>
+      </div>
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 40,
+          left: 500,
+          right: 100,
+          zIndex: 1000,
+          pointerEvents: 'auto',
+        }}
+      >
+        <Chatbot />
+      </div>
       <Tldraw 
         store={store}
+        components={components}
         shapeUtils={customShapeUtils}
         onMount={(editor) => {
+          editorRef.current = editor
           const iframeShapes = editor
             .getCurrentPageShapes()
             .filter((shape) => shape.type === 'iframe') as IFrameShape[]
@@ -121,21 +237,6 @@ export default function App() {
                 url: 'https://www.rasmic.xyz',
               },
             })
-            return
-          }
-
-          const [primary, ...rest] = iframeShapes
-
-          if (primary.props.url !== 'https://www.rasmic.xyz') {
-            editor.updateShape({
-              id: primary.id,
-              type: 'iframe',
-              props: { ...primary.props, url: 'https://www.rasmic.xyz' },
-            })
-          }
-
-          if (rest.length) {
-            editor.deleteShapes(rest.map((shape) => shape.id))
           }
         }}
       />
