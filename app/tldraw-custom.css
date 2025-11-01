@@ -1,0 +1,329 @@
+/* Family.co inspired tldraw customization */
+
+/* Override tldraw's default background with a softer, premium look */
+.tl-background {
+  background: linear-gradient(to bottom, #f8f9fa 0%, #f0f1f3 100%) !important;
+}
+
+.dark .tl-background {
+  background: linear-gradient(to bottom, #0a0a0c 0%, #12121a 100%) !important;
+}
+
+/* Customize the toolbar with glassmorphic effect */
+.tlui-toolbar {
+  background: rgba(20, 20, 25, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  padding: 6px !important;
+}
+
+/* Toolbar buttons */
+.tlui-button[data-toolbar="true"] {
+  border-radius: 10px !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+}
+
+.tlui-button[data-toolbar="true"] *,
+.tlui-button__tool,
+.tlui-button__tool * {
+  color: #ffffff !important;
+}
+
+.tlui-button[data-toolbar="true"] svg,
+.tlui-button[data-toolbar="true"] img {
+  opacity: 0.95 !important;
+  filter: brightness(1.6) !important;
+}
+
+.tlui-button[data-toolbar="true"] svg path,
+.tlui-button[data-toolbar="true"] svg rect,
+.tlui-button[data-toolbar="true"] svg line,
+.tlui-button[data-toolbar="true"] svg polyline,
+.tlui-button[data-toolbar="true"] svg polygon,
+.tlui-button[data-toolbar="true"] svg circle,
+.tlui-button[data-toolbar="true"] svg ellipse {
+  stroke: rgba(255, 255, 255, 0.9) !important;
+  fill: rgba(255, 255, 255, 0.9) !important;
+}
+
+.tlui-button[data-toolbar="true"]:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  transform: translateY(-1px) !important;
+}
+
+.tlui-button[data-toolbar="true"]:hover svg,
+.tlui-button[data-toolbar="true"]:hover img {
+  opacity: 1 !important;
+  filter: brightness(1.8) !important;
+}
+
+.tlui-button[data-toolbar="true"]:hover svg path,
+.tlui-button[data-toolbar="true"]:hover svg rect,
+.tlui-button[data-toolbar="true"]:hover svg line,
+.tlui-button[data-toolbar="true"]:hover svg polyline,
+.tlui-button[data-toolbar="true"]:hover svg polygon,
+.tlui-button[data-toolbar="true"]:hover svg circle,
+.tlui-button[data-toolbar="true"]:hover svg ellipse {
+  stroke: rgba(255, 255, 255, 1) !important;
+  fill: rgba(255, 255, 255, 1) !important;
+}
+
+.tlui-button[data-toolbar="true"][data-state="selected"] {
+  background: rgba(96, 127, 255, 0.25) !important;
+  color: rgb(96, 127, 255) !important;
+  box-shadow: 0 0 0 1px rgba(96, 127, 255, 0.3) inset !important;
+}
+
+.tlui-button[data-toolbar="true"][data-state="selected"] svg,
+.tlui-button[data-toolbar="true"][data-state="selected"] img {
+  opacity: 1 !important;
+  filter: brightness(2) !important;
+}
+
+.tlui-button[data-toolbar="true"][data-state="selected"] svg path,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg rect,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg line,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg polyline,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg polygon,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg circle,
+.tlui-button[data-toolbar="true"][data-state="selected"] svg ellipse {
+  stroke: rgba(255, 255, 255, 1) !important;
+  fill: rgba(255, 255, 255, 1) !important;
+}
+
+/* Ensure popover tool icons are white as well */
+.tlui-popover__content button svg,
+.tlui-popover__content button img {
+  opacity: 0.95 !important;
+  filter: brightness(1.6) !important;
+}
+
+.tlui-popover__content button svg path,
+.tlui-popover__content button svg rect,
+.tlui-popover__content button svg line,
+.tlui-popover__content button svg polyline,
+.tlui-popover__content button svg polygon,
+.tlui-popover__content button svg circle,
+.tlui-popover__content button svg ellipse {
+  stroke: rgba(255, 255, 255, 0.9) !important;
+  fill: rgba(255, 255, 255, 0.9) !important;
+}
+
+.tlui-popover__content button:hover svg,
+.tlui-popover__content button:hover img {
+  opacity: 1 !important;
+  filter: brightness(1.8) !important;
+}
+
+.tlui-popover__content button:hover svg path,
+.tlui-popover__content button:hover svg rect,
+.tlui-popover__content button:hover svg line,
+.tlui-popover__content button:hover svg polyline,
+.tlui-popover__content button:hover svg polygon,
+.tlui-popover__content button:hover svg circle,
+.tlui-popover__content button:hover svg ellipse {
+  stroke: rgba(255, 255, 255, 1) !important;
+  fill: rgba(255, 255, 255, 1) !important;
+}
+
+/* Action bar (top toolbar) */
+.tlui-top-panel,
+.tlui-top-panel > *,
+.tlui-top-app-bar__apploader,
+.tlui-top-app-bar__actions,
+.tlui-top-app-bar,
+.tlui-top-app-bar__menu,
+.tlui-top-app-bar__overflow {
+  display: none !important;
+}
+
+/* Bottom toolbar */
+.tlui-bottom-panel {
+  background: rgba(20, 20, 25, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+  margin: 8px !important;
+}
+
+/* All buttons get the Family.co treatment */
+.tlui-button {
+  border-radius: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.tlui-button:hover:not(:disabled) {
+  transform: translateY(-1px) !important;
+}
+
+/* Primary buttons */
+.tlui-button[data-type="primary"] {
+  background: linear-gradient(135deg, rgb(96, 127, 255) 0%, rgb(74, 100, 224) 100%) !important;
+  border: none !important;
+  box-shadow: 0 1px 3px rgba(96, 127, 255, 0.3) !important;
+}
+
+.tlui-button[data-type="primary"]:hover:not(:disabled) {
+  box-shadow: 0 4px 12px rgba(96, 127, 255, 0.4) !important;
+}
+
+/* Menus and popovers */
+.tlui-menu,
+.tlui-popover__content {
+  background: rgba(20, 20, 25, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.16) !important;
+  color: #ffffff !important;
+}
+
+.tlui-menu *,
+.tlui-popover__content * {
+  color: #ffffff !important;
+}
+
+/* Menu items */
+.tlui-menu__item {
+  border-radius: 8px !important;
+  transition: all 0.15s ease !important;
+}
+
+.tlui-menu__item:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Input fields */
+.tlui-input {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 10px !important;
+  color: #ffffff !important;
+  transition: all 0.15s ease !important;
+}
+
+.tlui-input:focus {
+  border-color: rgba(96, 127, 255, 0.4) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Zoom controls */
+.tlui-zoom-menu {
+  background: rgba(20, 20, 25, 0.92) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Selection handles */
+.tl-selection__bg {
+  fill: rgba(96, 127, 255, 0.1) !important;
+}
+
+.tl-selection__fg {
+  stroke: rgb(96, 127, 255) !important;
+}
+
+/* Grid (subtle, Family.co style) */
+.tl-grid {
+  opacity: 0.3 !important;
+}
+
+.dark .tl-grid {
+  opacity: 0.15 !important;
+}
+
+/* Canvas text color */
+.tl-text {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Context menu */
+.tlui-context-menu {
+  background: rgba(20, 20, 25, 0.95) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24), 0 4px 8px rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Smooth scrollbars */
+.tlui-layout::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.tlui-layout::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tlui-layout::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.tlui-layout::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Canvas helper text */
+.tlui-helper-text {
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Hide zoom menu and minimap toggle completely */
+.tlui-zoom-menu,
+.tlui-zoom-menu__button,
+button[aria-label*="minimap"],
+button[aria-label*="Minimap"],
+.tlui-navigation-panel {
+  display: none !important;
+}
+
+button[aria-label="Move focus to canvas"],
+button[title="Move focus to canvas"],
+button[aria-label="People"],
+button[title="People"],
+button[aria-label="Get a license for production"],
+button[title="Get a license for production"] {
+  display: none !important;
+}
+
+/* Hide license watermark/text in bottom right */
+.tlui-help-menu,
+.tlui-help-menu__button,
+.tlui-help-menu__content,
+button[aria-label*="help"],
+button[title*="help"],
+button[aria-label*="Help"],
+button[title*="Help"],
+a[href*="license"],
+a[href*="tldraw"],
+a[href*="tldraw.com"],
+a[href*="tldraw.dev"],
+div[data-testid*="help"],
+div[data-testid*="license"],
+div[class*="watermark"],
+div[class*="Watermark"],
+div[class*="branding"],
+div[class*="Branding"] {
+  display: none !important;
+}
+
+/* Hide any watermark or branding in bottom right corner */
+.tlui-layout__right-panel,
+.tlui-layout__right-panel > *,
+.tlui-layout__bottom-right {
+  display: none !important;
+}
+
