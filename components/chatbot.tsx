@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useChat } from "@ai-sdk/react";
+import { useMutation, useAction, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import {
   Message,
   MessageAvatar,
@@ -44,7 +45,7 @@ interface ChatbotProps {
   onToggleFullscreen?: () => void;
 }
 
-export default function Ai02({ onCapture, showMessages: showMessagesProp, onToggleMessages, isFullscreen, onToggleFullscreen }: ChatbotProps) {
+export default function Chat({ onCapture, showMessages: showMessagesProp, onToggleMessages, isFullscreen, onToggleFullscreen }: ChatbotProps) {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]);
   const [input, setInput] = useState("");
   const [showMessages, setShowMessages] = useState(showMessagesProp ?? true);
@@ -58,11 +59,104 @@ export default function Ai02({ onCapture, showMessages: showMessagesProp, onTogg
   }, [showMessagesProp]);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [lastSandboxUrl, setLastSandboxUrl] = useState<string | null>(null);
-  const { messages, sendMessage, status, error } = useChat();
+  const [projectId] = useState(() => `project-${Date.now()}`);
+  const [chatId, setChatId] = useState<string | null>(null);
+  const [status, setStatus] = useState<"idle" | "streaming" | "submitted">("idle");
+  const [messages, setMessages] = useState<any[]>([]);
+  
+  const startCodeGen = useMutation(api.generate.startCodeGen);
+  const continueChat = useAction(api.generate.continueChat);
+  const projectData = useQuery(api.generate.getProjectById, 
+    projectId ? { project_id: projectId } : "skip"
+  );
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log("messages", messages);
+  // Update messages from project data
+  useEffect(() => {
+    if (projectData?.chat) {
+      const chat = projectData.chat;
+      // Extract chat_id if available
+      if (chat.id && !chatId) {
+        setChatId(chat.id);
+      }
+      
+      // Convert chat messages to our format
+      if (chat.messages) {
+        const formattedMessages = chat.messages.map((msg: any, idx: number) => {
+          if (msg.role === "user" || msg.role === "assistant") {
+            return {
+              id: msg.id || `msg-${idx}`,
+              role: msg.role,
+              content: msg.content || msg.text || "",
+              parts: msg.parts || []
+            };
+          }
+          return null;
+        }).filter(Boolean);
+        
+        setMessages(formattedMessages);
+        setStatus("idle");
+      }
+    }
+  }, [projectData, chatId]);
+
+  const sendMessage = async ({ text, files }: { text: string; files?: any[] }) => {
+    if (!text.trim()) return;
+    
+    // Add user message immediately
+    const userMessage = {
+      id: `user-${Date.now()}`,
+      role: "user" as const,
+      content: text,
+      parts: []
+    };
+    setMessages(prev => [...prev, userMessage]);
+    setStatus("submitted");
+    
+    try {
+      if (!chatId) {
+        // First message - start new chat
+        await startCodeGen({
+          prompt: text,
+          project_id: projectId
+        });
+        setStatus("streaming");
+      } else {
+        // Continue existing chat
+        setStatus("streaming");
+        const result = await continueChat({
+          chat_id: chatId,
+          prompt: text,
+          project_id: projectId
+        });
+        
+        // Update messages with response
+        if (result?.chat?.messages) {
+          const formattedMessages = result.chat.messages.map((msg: any, idx: number) => {
+            if (msg.role === "user" || msg.role === "assistant") {
+              return {
+                id: msg.id || `msg-${idx}`,
+                role: msg.role,
+                content: msg.content || msg.text || "",
+                parts: msg.parts || []
+              };
+            }
+            return null;
+          }).filter(Boolean);
+          setMessages(formattedMessages);
+        }
+        setStatus("idle");
+      }
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message");
+      setStatus("idle");
+      // Remove the user message on error
+      setMessages(prev => prev.filter(msg => msg.id !== userMessage.id));
+    }
+  };
 
   // Listen for canvas image captures
   useEffect(() => {
@@ -146,9 +240,6 @@ export default function Ai02({ onCapture, showMessages: showMessagesProp, onTogg
       }
     }
   }, [messages, lastSandboxUrl]);
-
-  console.log("status", status);
-  console.log("error", error);
 
   type RenderMessage = {
     key: string;
