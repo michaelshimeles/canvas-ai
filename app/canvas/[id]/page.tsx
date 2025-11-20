@@ -1,19 +1,17 @@
 "use client"
 import Chatbot from '@/components/chatbot'
-import { DockDemo } from '@/components/dock'
-import Codebase from '@/components/codebase'
-import CodebaseExample from '@/components/codebase'
 import TerminalComponent from '@/components/terminal'
 import { Button } from '@/components/ui/button'
+import { Orb } from "@/components/ui/orb"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { PageRecordType, TLPageId } from '@tldraw/editor'
 import { useSyncDemo } from '@tldraw/sync'
-import { ArrowUpRightIcon, GripVerticalIcon, X, Maximize2, Minimize2, Globe, FileText, Code, Image, Music, Video, FolderOpen } from 'lucide-react'
+import { ArrowUpRightIcon, Code, FileText, FolderOpen, Globe, GripVerticalIcon, Image, Minimize2, Music, Video, X } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { BaseBoxShapeUtil, createShapeId, DefaultToolbar, Editor, HTMLContainer, RecordProps, T, TLBaseShape, TLComponents, Tldraw, TLShapeId } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { Orb } from "@/components/ui/orb"
 
 // Type definition
 type IFrameShape = TLBaseShape<
@@ -434,9 +432,10 @@ class IconShapeUtil extends BaseBoxShapeUtil<IconShape> {
 // Define custom shapes array
 const customShapeUtils = [IFrameShapeUtil, IconShapeUtil]
 
-export default function App() {
+export default function App({ params }: { params: { id: string } }) {
+  const { id } = useParams<{ id: string }>()
   const store = useSyncDemo({
-    roomId: '1',
+    roomId: id,
     shapeUtils: customShapeUtils,
   })
 
