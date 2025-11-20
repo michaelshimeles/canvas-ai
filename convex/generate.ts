@@ -42,7 +42,12 @@ export const insertProject = internalMutation({
         project_id: v.string()
     },
     handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) {
+            throw new Error("Unauthorized");
+        }
         await ctx.db.insert("projects", {
+            user_id: user.subject,
             chat: args.chat,
             project_id: args.project_id
         });
@@ -74,6 +79,17 @@ export const getProjectById = query({
     }
 })
 
+export const getAllProjects = query({
+    args: {},
+    handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) {
+            throw new Error("Unauthorized");
+        }
+        return ctx.db.query("projects").withIndex("user_id", (q) => q.eq("user_id", user.subject)).collect()
+    }
+})
+
 export const continueChat = action({
     args: {
         chat_id: v.string(),
@@ -88,13 +104,13 @@ export const continueChat = action({
         })
 
         const chat = await v0.chats.getById({ chatId: args.chat_id })
-        
+
         // Update the project in the database
         await ctx.runMutation(internal.generate.updateProject, {
             chat,
-            project_id: args.project_id
+            project_id: args.project_id,
         })
-        
+
         return {
             chat,
             response
@@ -105,13 +121,19 @@ export const continueChat = action({
 export const updateProject = internalMutation({
     args: {
         chat: v.any(),
-        project_id: v.string()
+        project_id: v.string(),
+        project_name: v.optional(v.string()),
+        project_description: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
         const existing = await ctx.db.query("projects")
             .withIndex("project_id", (q) => q.eq("project_id", args.project_id))
             .first();
-        
+        const user = await ctx.auth.getUserIdentity();
+
+        if (!user) {
+            throw new Error("Unauthorized");
+        }
         if (existing) {
             await ctx.db.patch(existing._id, {
                 chat: args.chat,
@@ -119,15 +141,36 @@ export const updateProject = internalMutation({
             });
         } else {
             await ctx.db.insert("projects", {
+                user_id: user.subject,
                 chat: args.chat,
-                project_id: args.project_id
+                project_id: args.project_id,
+                project_name: args.project_name,
+                project_description: args.project_description,
+                project_visibility: "private",
             });
         }
     }
 })
 
-export const getProjects = query({
-    handler: async (ctx, _) => {
-        return ctx.db.query("projects").collect()
+export const createProject = mutation({
+    args: {
+        project_id: v.string(),
+        project_name: v.string(),
+        project_description: v.string(),
+    },
+    handler: async (ctx, args) => {
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) {
+            throw new Error("Unauthorized");
+        }
+        const project = await ctx.db.insert("projects", {
+            user_id: user.subject,
+            project_name: args.project_name,
+            project_description: args.project_description,
+            project_visibility: "private",
+            project_id: args.project_id,
+            chat: null,
+        })
+        return project;
     }
 })

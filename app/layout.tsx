@@ -1,10 +1,11 @@
+import ConvexClientProvider from "@/components/convex-provider";
+import Navbar from "@/components/navbar";
+import { ClerkProvider } from "@clerk/nextjs";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import { ConvexClientProvider } from "@/components/convex-provider";
 import "./globals.css";
 import "./tldraw-custom.css";
-import { ClerkProvider } from "@clerk/nextjs";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,16 +29,17 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        >
-          <ConvexClientProvider>
+      <ConvexClientProvider>
+        <html lang="en">
+          <body
+            className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          >
+            <Navbar />
             {children}
             <Toaster />
-          </ConvexClientProvider>
-        </body>
-      </html>
+          </body>
+        </html>
+      </ConvexClientProvider>
     </ClerkProvider>
   );
 }

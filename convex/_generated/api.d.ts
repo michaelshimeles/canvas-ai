@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as canvas from "../canvas.js";
 import type * as generate from "../generate.js";
 
 import type {
@@ -25,6 +26,7 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  canvas: typeof canvas;
   generate: typeof generate;
 }>;
 declare const fullApiWithMounts: typeof fullApi;

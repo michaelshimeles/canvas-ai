@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PageRecordType, TLPageId } from '@tldraw/editor'
 import { useSyncDemo } from '@tldraw/sync'
 import { ArrowUpRightIcon, Code, FileText, FolderOpen, Globe, GripVerticalIcon, Image, Minimize2, Music, Video, X } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { BaseBoxShapeUtil, createShapeId, DefaultToolbar, Editor, HTMLContainer, RecordProps, T, TLBaseShape, TLComponents, Tldraw, TLShapeId } from 'tldraw'
@@ -431,9 +432,10 @@ class IconShapeUtil extends BaseBoxShapeUtil<IconShape> {
 // Define custom shapes array
 const customShapeUtils = [IFrameShapeUtil, IconShapeUtil]
 
-export default function App() {
+export default function App({ params }: { params: { id: string } }) {
+  const { id } = useParams<{ id: string }>()
   const store = useSyncDemo({
-    roomId: '1',
+    roomId: id,
     shapeUtils: customShapeUtils,
   })
 
