@@ -11,7 +11,7 @@ export default function Navbar() {
 
     const firstName = user?.firstName
     return (
-        <div className="flex justify-between items-center p-4 border-b">
+        <div className="flex justify-between items-center p-4 border-b h-16">
             <Link href="/">
                 <h1 className="text-xl font-semibold">Canvas AI</h1>
             </Link>

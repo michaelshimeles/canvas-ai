@@ -27,6 +27,7 @@ import {
 } from "@tabler/icons-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { useParams } from "next/navigation";
 
 const MODELS = [
   {
@@ -43,14 +44,15 @@ interface ChatbotProps {
   onToggleMessages?: () => void;
   isFullscreen?: boolean;
   onToggleFullscreen?: () => void;
+  projectId?: string;
 }
 
-export default function Chat({ onCapture, showMessages: showMessagesProp, onToggleMessages, isFullscreen, onToggleFullscreen }: ChatbotProps) {
+export default function Chat({ onCapture, showMessages: showMessagesProp, onToggleMessages, isFullscreen, onToggleFullscreen, projectId }: ChatbotProps) {
   const [selectedModel, setSelectedModel] = useState(MODELS[0]);
   const [input, setInput] = useState("");
   const [showMessages, setShowMessages] = useState(showMessagesProp ?? true);
   const isControlled = showMessagesProp !== undefined;
-  
+
   // Sync internal state with prop
   useEffect(() => {
     if (showMessagesProp !== undefined) {
@@ -59,21 +61,24 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
   }, [showMessagesProp]);
   const [attachedImage, setAttachedImage] = useState<string | null>(null);
   const [lastSandboxUrl, setLastSandboxUrl] = useState<string | null>(null);
-  const [projectId] = useState(() => `project-${Date.now()}`);
+
   const [chatId, setChatId] = useState<string | null>(null);
   const [status, setStatus] = useState<"idle" | "streaming" | "submitted">("idle");
   const [messages, setMessages] = useState<any[]>([]);
-  
+
   const startCodeGen = useMutation(api.generate.startCodeGen);
   const continueChat = useAction(api.generate.continueChat);
-  const projectData = useQuery(api.generate.getProjectById, 
+  const projectData = useQuery(api.generate.getProjectById,
     projectId ? { project_id: projectId } : "skip"
   );
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Update messages from project data
+
+  console.log("projectId", projectId)
+
   useEffect(() => {
     if (projectData?.chat) {
       const chat = projectData.chat;
@@ -81,7 +86,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
       if (chat.id && !chatId) {
         setChatId(chat.id);
       }
-      
+
       // Convert chat messages to our format
       if (chat.messages) {
         const formattedMessages = chat.messages.map((msg: any, idx: number) => {
@@ -95,7 +100,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
           }
           return null;
         }).filter(Boolean);
-        
+
         setMessages(formattedMessages);
         setStatus("idle");
       }
@@ -104,7 +109,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
 
   const sendMessage = async ({ text, files }: { text: string; files?: any[] }) => {
     if (!text.trim()) return;
-    
+
     // Add user message immediately
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -114,13 +119,13 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
     };
     setMessages(prev => [...prev, userMessage]);
     setStatus("submitted");
-    
+
     try {
       if (!chatId) {
         // First message - start new chat
         await startCodeGen({
           prompt: text,
-          project_id: projectId
+          project_id: projectId || ""
         });
         setStatus("streaming");
       } else {
@@ -129,9 +134,9 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
         const result = await continueChat({
           chat_id: chatId,
           prompt: text,
-          project_id: projectId
+          project_id: projectId || ""
         });
-        
+
         // Update messages with response
         if (result?.chat?.messages) {
           const formattedMessages = result.chat.messages.map((msg: any, idx: number) => {
@@ -163,7 +168,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
     const handleImageCapture = (event: CustomEvent<string>) => {
       setAttachedImage(event.detail);
     };
-    
+
     window.addEventListener('canvas-image-captured', handleImageCapture as EventListener);
     return () => {
       window.removeEventListener('canvas-image-captured', handleImageCapture as EventListener);
@@ -198,28 +203,28 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
   // Detect sandbox URL from message content and tool outputs
   useEffect(() => {
     if (messages.length === 0) return;
-    
+
     // Check the last few messages for sandbox URLs
     const messagesToCheck = messages.slice(-3); // Check last 3 messages
-    
+
     for (const message of messagesToCheck) {
       // Check message text content
       const content = extractMessageText(message);
       const urlMatch = content.match(/https:\/\/[^\s]+\.vercel\.run/);
-      
+
       if (urlMatch && urlMatch[0] !== lastSandboxUrl) {
         const sandboxUrl = urlMatch[0];
         console.log('Detected sandbox URL from message:', sandboxUrl);
         setLastSandboxUrl(sandboxUrl);
-        
+
         // Dispatch event to create iframe on canvas
-        window.dispatchEvent(new CustomEvent('create-sandbox-iframe', { 
-          detail: { url: sandboxUrl } 
+        window.dispatchEvent(new CustomEvent('create-sandbox-iframe', {
+          detail: { url: sandboxUrl }
         }));
         toast.success('Creating sandbox iframe on canvas!');
         return;
       }
-      
+
       // Also check tool call outputs
       const toolCalls = extractToolCalls(message);
       for (const call of toolCalls) {
@@ -229,9 +234,9 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
           if (url.includes('.vercel.run') && url !== lastSandboxUrl) {
             console.log('Detected sandbox URL from tool output:', url);
             setLastSandboxUrl(url);
-            
-            window.dispatchEvent(new CustomEvent('create-sandbox-iframe', { 
-              detail: { url } 
+
+            window.dispatchEvent(new CustomEvent('create-sandbox-iframe', {
+              detail: { url }
             }));
             toast.success('Creating sandbox iframe on canvas!');
             return;
@@ -250,7 +255,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
   };
 
   const extractMessageText = (message: any): string => {
-    if (Array.isArray(message?.parts)) {
+    if (Array.isArray(message?.parts) && message.parts.length > 0) {
       return message.parts
         .map((part: any) => (part && part.type === "text" ? part.text ?? "" : ""))
         .join("")
@@ -273,16 +278,16 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
     if (message?.toolInvocations) {
       return message.toolInvocations;
     }
-    
+
     // Check for parts array (new format)
     if (Array.isArray(message?.parts)) {
-      const toolParts = message.parts.filter((part: any) => 
+      const toolParts = message.parts.filter((part: any) =>
         part.type && part.type.startsWith('tool-') && part.state === 'output-available'
       );
       console.log('Tool parts found:', toolParts.length, toolParts);
       return toolParts;
     }
-    
+
     return [];
   };
 
@@ -365,7 +370,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                 <div className="flex flex-col gap-3">
                   {messages.map((message, idx) => {
                     const items = [];
-                    
+
                     const content = extractMessageText(message);
                     if (content) {
                       const role: "user" | "assistant" = message.role === "user" ? "user" : "assistant";
@@ -377,7 +382,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                         user: "You",
                         assistant: "Canvas AI",
                       };
-                      
+
                       items.push(
                         <Message from={role} key={`msg-${message.id || idx}`}>
                           <MessageContent>{content}</MessageContent>
@@ -385,7 +390,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                         </Message>
                       );
                     }
-                    
+
                     const toolCalls = extractToolCalls(message);
                     if (toolCalls.length > 0) {
                       items.push(
@@ -393,9 +398,9 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                           {toolCalls.map((call: any, callIdx: number) => {
                             const output = call.output || call.result;
                             if (!output?.message) return null;
-                            
+
                             return (
-                              <div 
+                              <div
                                 key={`${message.id}-${callIdx}`}
                                 className="rounded-lg bg-slate-800/50 border border-slate-700/50 px-3 py-2 text-slate-300 font-mono text-[11px]"
                               >
@@ -406,10 +411,10 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                         </div>
                       );
                     }
-                    
+
                     return items;
                   })}
-                  
+
                   {(status === "streaming" || status === "submitted") && (
                     <Message from="assistant" key="typing-indicator">
                       <MessageContent>
@@ -428,16 +433,16 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
             </div>
           </>
         )}
-        
+
         {/* Input area at bottom */}
         <div className="p-4 border-t border-slate-700/50">
           <div className="flex flex-col gap-4">
             <div className="flex min-h-[120px] flex-col rounded-2xl cursor-text bg-card border border-border shadow-lg">
               {attachedImage && (
                 <div className="relative p-2 border-b border-border">
-                  <img 
-                    src={attachedImage} 
-                    alt="Canvas capture" 
+                  <img
+                    src={attachedImage}
+                    alt="Canvas capture"
                     className="h-20 rounded border border-border object-contain bg-muted"
                   />
                   <button
@@ -455,7 +460,7 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      sendMessage({ 
+                      sendMessage({
                         text: input,
                         files: attachedImage ? [{
                           type: 'file',
@@ -543,29 +548,29 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                     className="hidden"
                   />
 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    sendMessage({ 
-                      text: input,
-                      files: attachedImage ? [{
-                        type: 'file',
-                        url: attachedImage,
-                        mediaType: 'image/png',
-                      }] : undefined,
-                    });
-                    setInput('');
-                    setAttachedImage(null);
-                  }}
-                  className={cn(
-                    "h-6 w-6 rounded-full transition-all duration-100 cursor-pointer bg-primary",
-                    input && "bg-primary hover:bg-primary/90!"
-                  )}
-                  disabled={!input}
-                >
-                  <IconArrowUp className="h-4 w-4 text-primary-foreground" />
-                </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      sendMessage({
+                        text: input,
+                        files: attachedImage ? [{
+                          type: 'file',
+                          url: attachedImage,
+                          mediaType: 'image/png',
+                        }] : undefined,
+                      });
+                      setInput('');
+                      setAttachedImage(null);
+                    }}
+                    className={cn(
+                      "h-6 w-6 rounded-full transition-all duration-100 cursor-pointer bg-primary",
+                      input && "bg-primary hover:bg-primary/90!"
+                    )}
+                    disabled={!input}
+                  >
+                    <IconArrowUp className="h-4 w-4 text-primary-foreground" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -691,12 +696,12 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                             text: input,
                             files: attachedImage
                               ? [
-                                  {
-                                    type: "file",
-                                    url: attachedImage,
-                                    mediaType: "image/png",
-                                  },
-                                ]
+                                {
+                                  type: "file",
+                                  url: attachedImage,
+                                  mediaType: "image/png",
+                                },
+                              ]
                               : undefined,
                           });
                           setInput("");
@@ -784,12 +789,12 @@ export default function Chat({ onCapture, showMessages: showMessagesProp, onTogg
                             text: input,
                             files: attachedImage
                               ? [
-                                  {
-                                    type: "file",
-                                    url: attachedImage,
-                                    mediaType: "image/png",
-                                  },
-                                ]
+                                {
+                                  type: "file",
+                                  url: attachedImage,
+                                  mediaType: "image/png",
+                                },
+                              ]
                               : undefined,
                           });
                           setInput("");
