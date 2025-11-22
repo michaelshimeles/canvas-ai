@@ -1,8 +1,9 @@
-import type { NextConfig } from "next";
-import { withWorkflow } from 'workflow/next'; 
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    // Tell Next/Turbopack not to bundle these; just use them as Node deps
+    serverExternalPackages: ["@daytonaio/sdk", "ws"],
+  },
 };
 
-export default withWorkflow(nextConfig);
+module.exports = nextConfig;

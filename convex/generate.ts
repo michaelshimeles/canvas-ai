@@ -41,7 +41,7 @@ export const generateCode = internalAction({
         // console.log("chat", chat)
         await ctx.runMutation(internal.generate.updateProject, {
             user_id: args.user_id,
-            chat: "hi",
+            chat,
             project_id: args.project_id
         })
     },
@@ -84,8 +84,8 @@ export const continueChat = action({
             throw new Error("Unauthorized");
         }
 
-        const response = await v0.chats.create({
-            projectId: args.chat_id,
+        const response = await v0.chats.sendMessage({
+            chatId: args.chat_id,
             message: args.prompt,
         })
 
