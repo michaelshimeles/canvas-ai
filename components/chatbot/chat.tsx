@@ -19,40 +19,17 @@ import { useRef, useState } from "react";
 
 const MODELS = [
     {
-        value: "gpt-5",
-        name: "GPT-5",
+        value: "claude-code",
+        name: "Claude Code",
         description: "Most advanced model",
         max: true,
-    },
-    {
-        value: "gpt-4o",
-        name: "GPT-4o",
-        description: "Fast and capable",
-    },
-    {
-        value: "gpt-4",
-        name: "GPT-4",
-        description: "Reliable and accurate",
-    },
-    {
-        value: "claude-3.5",
-        name: "Claude 3.5 Sonnet",
-        description: "Great for coding tasks",
-    },
+    }
 ];
 
 export default function Chat({ isFullscreen }: { isFullscreen: boolean | null }) {
     const [inputValue, setInputValue] = useState("");
     const [selectedModel, setSelectedModel] = useState(MODELS[0]);
     const inputRef = useRef<HTMLTextAreaElement>(null);
-
-    const handlePromptClick = (prompt: string) => {
-        if (inputRef.current) {
-            inputRef.current.value = prompt;
-            setInputValue(prompt);
-            inputRef.current.focus();
-        }
-    };
 
     const handleModelChange = (value: string) => {
         const model = MODELS.find((m) => m.value === value);
