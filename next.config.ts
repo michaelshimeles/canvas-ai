@@ -1,9 +1,4 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    // Tell Next/Turbopack not to bundle these; just use them as Node deps
-    serverExternalPackages: ["@daytonaio/sdk", "ws"],
-  },
-};
+const nextConfig = {};
 
 module.exports = nextConfig;
