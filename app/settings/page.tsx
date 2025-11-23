@@ -6,7 +6,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 
-export default function SettingsPage() {
+import { Suspense } from "react"
+
+function SettingsContent() {
     const searchParams = useSearchParams()
     const router = useRouter()
     const pathname = usePathname()
@@ -88,5 +90,13 @@ export default function SettingsPage() {
                 </TabsContent>
             </Tabs>
         </div>
+    )
+}
+
+export default function SettingsPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SettingsContent />
+        </Suspense>
     )
 }

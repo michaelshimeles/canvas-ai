@@ -1,5 +1,5 @@
 "use client"
-import Chatbot from '@/components/chatbot'
+import ChatSystem from '@/components/chatbot/index'
 import TerminalComponent from '@/components/terminal'
 import { Button } from '@/components/ui/button'
 import { Orb } from "@/components/ui/orb"
@@ -968,7 +968,7 @@ export default function App({ params }: { params: { id: string } }) {
           pointerEvents: 'auto',
         }}
       >
-        <Chatbot
+        <ChatSystem
           onCapture={captureSelection}
           showMessages={showMessages}
           onToggleMessages={() => setShowMessages((prev) => !prev)}
@@ -1072,9 +1072,9 @@ export default function App({ params }: { params: { id: string } }) {
           pointerEvents: 'auto',
         }}
       >
-        <div className="w-[50px] h-[50px]">
+        {/* <div className="w-[50px] h-[50px]">
           <Orb colors={["#FF6B6B", "#4ECDC4"]} />
-        </div>
+        </div> */}
       </div>
     </div>
   )
