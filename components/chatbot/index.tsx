@@ -2,16 +2,6 @@
 
 import Chat from "./chat";
 
-
-const MODELS = [
-    {
-        value: "claude-code",
-        name: "Claude Code",
-        description: "Most advanced model",
-        max: true,
-    },
-];
-
 interface ChatbotProps {
     onCapture?: () => void;
     showMessages?: boolean;
